@@ -553,260 +553,235 @@ parser.add_argument(
 )
 
 
+parser.add_argument(
+    "--cnn_model_name",  # Argument to specify the CNN model name.  # Name des CNN-Modells angeben.
+    type=str,  # The argument should be of type string.  # Das Argument sollte vom Typ String sein.
+    default="efficientnet_b4",  # Default model name is "efficientnet_b4".  # Standardmodellname ist "efficientnet_b4".
+    help="[NEW MODEL] CNN model name from torchvision models, see https://pytorch.org/vision/stable/models.html "  # Help text with a link to torchvision models.  # Hilfetext mit einem Link zu torchvision-Modellen.
+)
+
+parser.add_argument(
+    "--do_not_load_pretrained_cnn",  # Flag to disable loading pretrained weights for CNN.  # Flag, um das Laden vortrainierter Gewichte für CNN zu deaktivieren.
+    action="store_true",  # If this flag is set, the action will store True.  # Wenn dieses Flag gesetzt ist, wird True gespeichert.
+    help="[NEW MODEL] Do not load the pretrained weights for the cnn model",  # Help text for the flag.  # Hilfetext für das Flag.
+)
+
+parser.add_argument(
+    "--embedded_size",  # Argument to specify the size of the embedding.  # Argument zur Angabe der Größe der Einbettung.
+    type=int,  # The argument should be of type integer.  # Das Argument sollte vom Typ Integer sein.
+    default=512,  # Default embedding size is 512.  # Standard-Einbettungsgröße ist 512.
+    help="[NEW MODEL] The size of the embedding for the encoder.",  # Help text for embedding size.  # Hilfetext für die Einbettungsgröße.
+)
+
+parser.add_argument(
+    "--lstm_hidden_size",  # Argument for the hidden state size in LSTM.  # Argument für die Größe des versteckten Zustands in LSTM.
+    type=int,  # The argument should be of type integer.  # Das Argument sollte vom Typ Integer sein.
+    default=512,  # Default hidden size is 512.  # Standardgröße des versteckten Zustands ist 512.
+    help="[NEW MODEL LSTM] The size of the hidden state for the LSTM.",  # Help text for hidden state size.  # Hilfetext für die Größe des versteckten Zustands.
+)
+
+parser.add_argument(
+    "--nhead",  # Argument for the number of attention heads.  # Argument für die Anzahl der Aufmerksamkeitsköpfe.
+    type=int,  # The argument should be of type integer.  # Das Argument sollte vom Typ Integer sein.
+    default=8,  # Default is 8 heads in multi-head attention.  # Standard sind 8 Köpfe in der Multi-Head-Attention.
+    help="[NEW MODEL Transformers] Number of heads in the multi-head attention",  # Help text for attention heads.  # Hilfetext für die Aufmerksamkeitsköpfe.
+)
+
+parser.add_argument(
+    "--num_layers_encoder",  # Argument for the number of transformer layers.  # Argument für die Anzahl der Transformer-Schichten.
+    type=int,  # The argument should be of type integer.  # Das Argument sollte vom Typ Integer sein.
+    default=4,  # Default number of layers is 4.  # Standardanzahl der Schichten ist 4.
+    help="[NEW MODEL] Number of transformer layers in the encoder",  # Help text for transformer layers.  # Hilfetext für die Transformer-Schichten.
+)
+
+parser.add_argument(
+    "--bidirectional_lstm",  # Flag to specify whether LSTM is bidirectional.  # Flag, um anzugeben, ob LSTM bidirektional ist.
+    action="store_true",  # If set, the action will store True.  # Wenn gesetzt, wird die Aktion True speichern.
+    help="[NEW MODEL LSTM] Forward or bidirectional LSTM",  # Help text for LSTM directionality.  # Hilfetext für die Richtung von LSTM.
+)
+
+parser.add_argument(
+    "--dropout_cnn_out",  # Argument for dropout rate after CNN.  # Argument für die Dropout-Rate nach dem CNN.
+    type=float,  # The argument should be of type float.  # Das Argument sollte vom Typ Float sein.
+    default=0.3,  # Default dropout rate is 0.3.  # Standard-Dropout-Rate ist 0,3.
+    help="[NEW MODEL] Dropout rate for the output of the CNN",  # Help text for CNN dropout rate.  # Hilfetext für die Dropout-Rate des CNN.
+)
+
+parser.add_argument(
+    "--positional_embeddings_dropout",  # Argument for dropout rate in positional embeddings.  # Argument für die Dropout-Rate in positionalen Einbettungen.
+    type=float,  # The argument should be of type float.  # Das Argument sollte vom Typ Float sein.
+    default=0.1,  # Default dropout rate is 0.1.  # Standard-Dropout-Rate ist 0,1.
+    help="[NEW MODEL Transformer] Dropout rate for the positional embeddings",  # Help text for dropout in positional embeddings.  # Hilfetext für Dropout in positionalen Einbettungen.
+)
 
 
-**************** continue
 
+parser.add_argument(
+    "--dropout_encoder",  # Argument for dropout in the encoder.  # Argument für Dropout im Encoder.
+    type=float,  # Specifies the type as float.  # Gibt den Typ als Float an.
+    default=0.1,  # Default dropout rate is 0.1.  # Standard-Dropout-Rate ist 0.1.
+    help="[NEW MODEL] Dropout rate for the encoder",  # Help message describing its purpose.  # Hilfetext, der den Zweck beschreibt.
+)
 
+parser.add_argument(
+    "--dropout_encoder_features",  # Argument for dropout of encoder features.  # Argument für Dropout der Encoder-Features.
+    type=float,  # Specifies the type as float.  # Gibt den Typ als Float an.
+    default=0.3,  # Default dropout probability is 0.3.  # Standard-Dropout-Wahrscheinlichkeit ist 0.3.
+    help="[NEW MODEL] Dropout probability of the encoder output",  # Describes the purpose of the argument.  # Beschreibt den Zweck des Arguments.
+)
 
+parser.add_argument(
+    "--mask_prob",  # Argument for masking probability in transformer.  # Argument für Maskierungswahrscheinlichkeit im Transformer.
+    type=float,  # Specifies the type as float.  # Gibt den Typ als Float an.
+    default=0.2,  # Default probability is 0.2.  # Standardwahrscheinlichkeit ist 0.2.
+    help="[TRANSFORMER] Probability of masking each input vector in the transformer encoder",  # Describes the usage for masking.  # Beschreibt die Verwendung für Maskierung.
+)
 
+parser.add_argument(
+    "--sequence_size",  # Argument for input sequence size.  # Argument für die Größe der Eingabesequenz.
+    type=int,  # Specifies the type as integer.  # Gibt den Typ als Integer an.
+    default=5,  # Default sequence size is 5.  # Standardsequenzgröße ist 5.
+    help="[NEW MODEL] Length of the input sequence. Placeholder for the future, only 5 supported",  # Explains future usage and current limit.  # Erklärt zukünftige Nutzung und aktuelle Begrenzung.
+)
 
+parser.add_argument(
+    "--checkpoint_path",  # Argument for specifying a checkpoint path.  # Argument zur Angabe eines Checkpoint-Pfads.
+    type=str,  # Specifies the type as string.  # Gibt den Typ als String an.
+    default=None,  # Default is None, meaning no checkpoint path.  # Standard ist None, d. h. kein Checkpoint-Pfad.
+    help="If new_model is True, the path to the checkpoint to a pretrained model in the image reordering task. "  # Explains usage for pretrained models.  # Erklärt die Verwendung für vortrainierte Modelle.
+    "If continue_training is True, the path to the checkpoint to continue training from.",  # Explains usage for resuming training.  # Erklärt die Verwendung zur Fortsetzung des Trainings.
+)
 
+parser.add_argument(
+    "--control_mode",  # Argument for specifying the model's control mode.  # Argument zur Festlegung des Steuerungsmodus des Modells.
+    type=str,  # Specifies the type as string.  # Gibt den Typ als String an.
+    default="keyboard",  # Default mode is "keyboard".  # Standardmodus ist "Tastatur".
+    choices=["keyboard", "controller"],  # Allowed choices are keyboard or controller.  # Zulässige Optionen sind Tastatur oder Controller.
+    help="Model output format: keyboard (Classification task: 9 classes) "  # Explains usage for classification task.  # Erklärt die Verwendung für Klassifizierungsaufgaben.
+    "or controller (Regression task: 2 variables)",  # Explains usage for regression task.  # Erklärt die Verwendung für Regressionsaufgaben.
+)
 
+parser.add_argument(
+    "--label_smoothing",  # Argument for label smoothing.  # Argument für Label-Smoothing.
+    type=float,  # Specifies the type as float.  # Gibt den Typ als Float an.
+    default=0.1,  # Default label smoothing value is 0.1.  # Standardwert für Label-Smoothing ist 0.1.
+    help="[NEW MODEL] Label smoothing in the CrossEntropyLoss "  # Explains usage for CrossEntropyLoss.  # Erklärt die Verwendung im CrossEntropyLoss.
+    "if we are in the classification task (control_mode == 'keyboard')",  # Applicable for classification tasks.  # Gilt für Klassifizierungsaufgaben.
+)
 
+parser.add_argument(
+    "--devices",  # Argument for specifying number of devices.  # Argument zur Festlegung der Anzahl der Geräte.
+    type=int,  # Specifies the type as integer.  # Gibt den Typ als Integer an.
+    default=1,  # Default is 1 device.  # Standard ist 1 Gerät.
+    help="Number of GPUs/TPUs to use.",  # Explains device usage.  # Erklärt die Verwendung von Geräten.
+)
 
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-    
     parser.add_argument(
-        "--cnn_model_name",
-        type=str,
-        default="efficientnet_b4",
-        help="[NEW MODEL] CNN model name from torchvision models, see https://pytorch.org/vision/stable/models.html "
-        "for a list of available models.",
+        "--accelerator",  # Argument to specify the computing accelerator. # Argument zum Festlegen des Berechnungsbeschleunigers.
+        type=str,  # The type of input is a string. # Der Eingabetyp ist ein String.
+        default="auto",  # Default is 'auto' to detect the system's available accelerator. # Standardwert ist 'auto', um den verfügbaren Beschleuniger des Systems zu erkennen.
+        choices=["auto", "tpu", "gpu", "cpu", "ipu"],  # Accepted values: 'auto', 'tpu', 'gpu', 'cpu', 'ipu'. # Akzeptierte Werte: 'auto', 'tpu', 'gpu', 'cpu', 'ipu'.
+        help="Accelerator to use. If 'auto', tries to automatically detect TPU, GPU, CPU or IPU system",  # Explanation of the argument. # Erklärung des Arguments.
     )
 
     parser.add_argument(
-        "--do_not_load_pretrained_cnn",
-        action="store_true",
-        help="[NEW MODEL] Do not load the pretrained weights for the cnn model",
+        "--precision",  # Argument to set the numerical precision. # Argument zum Festlegen der numerischen Genauigkeit.
+        type=str,  # The type of input is a string. # Der Eingabetyp ist ein String.
+        default="16",  # Default is '16' (half precision). # Standardwert ist '16' (halbe Genauigkeit).
+        choices=["bf16", "16", "32", "64"],  # Accepted values: 'bf16', '16', '32', '64'. # Akzeptierte Werte: 'bf16', '16', '32', '64'.
+        help=" Double precision (64), full precision (32), "  # Help text for precision options. # Hilfetext zu Genauigkeitsoptionen.
+        "half precision (16) or bfloat16 precision (bf16). "  # Further explanation of precision levels. # Weitere Erläuterung der Genauigkeitsstufen.
+        "Can be used on CPU, GPU or TPUs.",  # Precision options are compatible with CPU, GPU, and TPU. # Genauigkeitsoptionen sind kompatibel mit CPU, GPU und TPU.
     )
 
     parser.add_argument(
-        "--embedded_size",
-        type=int,
-        default=512,
-        help="[NEW MODEL] The size of the embedding for the encoder.",
+        "--strategy",  # Argument to define the training strategy. # Argument zur Definition der Trainingsstrategie.
+        type=str,  # The type of input is a string. # Der Eingabetyp ist ein String.
+        default=None,  # Default value is None, meaning no specific strategy is set. # Standardwert ist None, was bedeutet, dass keine bestimmte Strategie festgelegt ist.
+        help="Supports passing different training strategies with aliases (ddp, ddp_spawn, etc)",  # Explains the available strategies. # Erklärt die verfügbaren Strategien.
     )
 
     parser.add_argument(
-        "--lstm_hidden_size",
-        type=int,
-        default=512,
-        help="[NEW MODEL LSTM] The size of the hidden state for the LSTM.",
+        "--report_to",  # Argument to select the reporting tool. # Argument zur Auswahl des Reporting-Tools.
+        type=str,  # The type of input is a string. # Der Eingabetyp ist ein String.
+        default="wandb",  # Default is 'wandb' for reporting. # Standardwert ist 'wandb' für Reporting.
+        choices=["wandb", "tensorboard"],  # Accepted values: 'wandb', 'tensorboard'. # Akzeptierte Werte: 'wandb', 'tensorboard'.
+        help="Report to wandb or tensorboard",  # Explains the purpose of the argument. # Erklärt den Zweck des Arguments.
     )
 
     parser.add_argument(
-        "--nhead",
-        type=int,
-        default=8,
-        help="[NEW MODEL Transformers] Number of heads in the multi-head attention",
+        "--find_lr",  # Argument to enable the learning rate finder. # Argument zur Aktivierung des Lernratenfinders.
+        action="store_true",  # Action type that stores True if this argument is specified. # Aktionstyp, der True speichert, wenn dieses Argument angegeben wird.
+        help="Find the optimal learning rate for the model. We will use Pytorch Lightning's find_lr function. "  # Explains how the learning rate finder works. # Erklärt, wie der Lernratenfinder funktioniert.
+        "See: "  # Link to further documentation. # Link zu weiterer Dokumentation.
+        "https://pytorch-lightning.readthedocs.io/en/latest/advanced/training_tricks.html#learning-rate-finder",  # URL for more information. # URL für weitere Informationen.
     )
 
-    parser.add_argument(
-        "--num_layers_encoder",
-        type=int,
-        default=4,
-        help="[NEW MODEL] Number of transformer layers in the encoder",
-    )
+    args = parser.parse_args()  # Parses all the arguments provided by the user. # Analysiert alle vom Benutzer bereitgestellten Argumente.
 
-    parser.add_argument(
-        "--bidirectional_lstm",
-        action="store_true",
-        help="[NEW MODEL LSTM] Forward or bidirectional LSTM",
-    )
 
-    parser.add_argument(
-        "--dropout_cnn_out",
-        type=float,
-        default=0.3,
-        help="[NEW MODEL] Dropout rate for the output of the CNN",
-    )
-
-    parser.add_argument(
-        "--positional_embeddings_dropout",
-        type=float,
-        default=0.1,
-        help="[NEW MODEL Transformer] Dropout rate for the positional embeddings",
-    )
-
-    parser.add_argument(
-        "--dropout_encoder",
-        type=float,
-        default=0.1,
-        help="[NEW MODEL] Dropout rate for the encoder",
-    )
-
-    parser.add_argument(
-        "--dropout_encoder_features",
-        type=float,
-        default=0.3,
-        help="[NEW MODEL] Dropout probability of the encoder output",
-    )
-
-    parser.add_argument(
-        "--mask_prob",
-        type=float,
-        default=0.2,
-        help="[TRANSFORMER] Probability of masking each input vector in the transformer encoder",
-    )
-
-    parser.add_argument(
-        "--sequence_size",
-        type=int,
-        default=5,
-        help="[NEW MODEL] Length of the input sequence. Placeholder for the future, only 5 supported",
-    )
-
-    parser.add_argument(
-        "--checkpoint_path",
-        type=str,
-        default=None,
-        help="If new_model is True, the path to the checkpoint to a pretrained model in the image reordering task. "
-        "If continue_training is True, the path to the checkpoint to continue training from.",
-    )
-
-    parser.add_argument(
-        "--control_mode",
-        type=str,
-        default="keyboard",
-        choices=["keyboard", "controller"],
-        help="Model output format: keyboard (Classification task: 9 classes) "
-        "or controller (Regression task: 2 variables)",
-    )
-
-    parser.add_argument(
-        "--label_smoothing",
-        type=float,
-        default=0.1,
-        help="[NEW MODEL] Label smoothing in the CrossEntropyLoss "
-        "if we are in the classification task (control_mode == 'keyboard')",
-    )
-
-    parser.add_argument(
-        "--devices",
-        type=int,
-        default=1,
-        help="Number of GPUs/TPUs to use. ",
-    )
-
-    parser.add_argument(
-        "--accelerator",
-        type=str,
-        default="auto",
-        choices=["auto", "tpu", "gpu", "cpu", "ipu"],
-        help="Accelerator to use. If 'auto', tries to automatically detect TPU, GPU, CPU or IPU system",
-    )
-
-    parser.add_argument(
-        "--precision",
-        type=str,
-        default="16",
-        choices=["bf16", "16", "32", "64"],
-        help=" Double precision (64), full precision (32), "
-        "half precision (16) or bfloat16 precision (bf16). "
-        "Can be used on CPU, GPU or TPUs.",
-    )
-
-    parser.add_argument(
-        "--strategy",
-        type=str,
-        default=None,
-        help="Supports passing different training strategies with aliases (ddp, ddp_spawn, etc)",
-    )
-
-    parser.add_argument(
-        "--report_to",
-        type=str,
-        default="wandb",
-        choices=["wandb", "tensorboard"],
-        help="Report to wandb or tensorboard",
-    )
-
-    parser.add_argument(
-        "--find_lr",
-        action="store_true",
-        help="Find the optimal learning rate for the model. We will use Pytorch Lightning's find_lr function. "
-        "See: "
-        "https://pytorch-lightning.readthedocs.io/en/latest/advanced/training_tricks.html#learning-rate-finder",
-    )
-
-    args = parser.parse_args()
-
-    if args.train_new:
-        train_new_model(
-            train_dir=args.train_dir,
-            val_dir=args.val_dir,
-            test_dir=args.test_dir,
-            output_dir=args.output_dir,
-            batch_size=args.batch_size,
-            max_epochs=args.max_epochs,
-            cnn_model_name=args.cnn_model_name,
-            accumulation_steps=args.accumulation_steps,
-            hide_map_prob=args.hide_map_prob,
-            dropout_images_prob=args.dropout_images_prob,
-            variable_weights=args.variable_weights,
-            control_mode=args.control_mode,
-            val_check_interval=args.val_check_interval,
-            dataloader_num_workers=args.dataloader_num_workers,
-            pretrained_cnn=not args.do_not_load_pretrained_cnn,
-            embedded_size=args.embedded_size,
-            nhead=args.nhead,
-            num_layers_encoder=args.num_layers_encoder,
-            lstm_hidden_size=args.lstm_hidden_size,
-            dropout_cnn_out=args.dropout_cnn_out,
-            dropout_encoder_features=args.dropout_encoder_features,
-            positional_embeddings_dropout=args.positional_embeddings_dropout,
-            dropout_encoder=args.dropout_encoder,
-            mask_prob=args.mask_prob,
-            sequence_size=args.sequence_size,
-            encoder_type=args.encoder_type,
-            bidirectional_lstm=args.bidirectional_lstm,
-            checkpoint_path=args.checkpoint_path,
-            label_smoothing=args.label_smoothing,
-            devices=args.devices,
-            accelerator=args.accelerator,
-            precision=args.precision,
-            strategy=args.strategy,
-            report_to=args.report_to,
-            find_lr=args.find_lr,
-            learning_rate=args.learning_rate,
-            weight_decay=args.weight_decay,
-            optimizer_name=args.optimizer_name,
-            scheduler_name=args.scheduler_name,
-            warmup_factor=args.warmup_factor,
+    if args.train_new:  # Check if a new model should be trained.  # Überprüft, ob ein neues Modell trainiert werden soll.
+        train_new_model(  # Call the function to train a new model.  # Ruft die Funktion auf, um ein neues Modell zu trainieren.
+            train_dir=args.train_dir,  # Directory containing training data.  # Verzeichnis mit den Trainingsdaten.
+            val_dir=args.val_dir,  # Directory containing validation data.  # Verzeichnis mit den Validierungsdaten.
+            test_dir=args.test_dir,  # Directory containing test data.  # Verzeichnis mit den Testdaten.
+            output_dir=args.output_dir,  # Directory to save the model outputs.  # Verzeichnis, in dem die Modellausgaben gespeichert werden.
+            batch_size=args.batch_size,  # Batch size for training.  # Batch-Größe für das Training.
+            max_epochs=args.max_epochs,  # Maximum number of epochs for training.  # Maximale Anzahl an Epochen für das Training.
+            cnn_model_name=args.cnn_model_name,  # Name of the CNN model to use.  # Name des zu verwendenden CNN-Modells.
+            accumulation_steps=args.accumulation_steps,  # Number of steps for gradient accumulation.  # Anzahl der Schritte zur Gradientenakkumulation.
+            hide_map_prob=args.hide_map_prob,  # Probability of hiding parts of the map.  # Wahrscheinlichkeit, Teile der Karte zu verstecken.
+            dropout_images_prob=args.dropout_images_prob,  # Probability of dropping images during training.  # Wahrscheinlichkeit, Bilder während des Trainings auszublenden.
+            variable_weights=args.variable_weights,  # Weights for variable parameters.  # Gewichte für variable Parameter.
+            control_mode=args.control_mode,  # Control mode for training.  # Kontrollmodus für das Training.
+            val_check_interval=args.val_check_interval,  # Interval for validation checks.  # Intervall für Validierungsprüfungen.
+            dataloader_num_workers=args.dataloader_num_workers,  # Number of workers for data loading.  # Anzahl der Worker für das Laden von Daten.
+            pretrained_cnn=not args.do_not_load_pretrained_cnn,  # Whether to load a pretrained CNN.  # Gibt an, ob ein vortrainiertes CNN geladen werden soll.
+            embedded_size=args.embedded_size,  # Size of embedded features.  # Größe der eingebetteten Features.
+            nhead=args.nhead,  # Number of attention heads in the encoder.  # Anzahl der Attention-Heads im Encoder.
+            num_layers_encoder=args.num_layers_encoder,  # Number of layers in the encoder.  # Anzahl der Schichten im Encoder.
+            lstm_hidden_size=args.lstm_hidden_size,  # Hidden size of the LSTM.  # Verdeckte Größe des LSTM.
+            dropout_cnn_out=args.dropout_cnn_out,  # Dropout rate for CNN outputs.  # Dropout-Rate für CNN-Ausgaben.
+            dropout_encoder_features=args.dropout_encoder_features,  # Dropout rate for encoder features.  # Dropout-Rate für Encoder-Features.
+            positional_embeddings_dropout=args.positional_embeddings_dropout,  # Dropout rate for positional embeddings.  # Dropout-Rate für Positions-Einbettungen.
+            dropout_encoder=args.dropout_encoder,  # Dropout rate in the encoder.  # Dropout-Rate im Encoder.
+            mask_prob=args.mask_prob,  # Probability of masking inputs.  # Wahrscheinlichkeit, Eingaben zu maskieren.
+            sequence_size=args.sequence_size,  # Length of input sequences.  # Länge der Eingabesequenzen.
+            encoder_type=args.encoder_type,  # Type of encoder to use.  # Typ des zu verwendenden Encoders.
+            bidirectional_lstm=args.bidirectional_lstm,  # Use bidirectional LSTM if True.  # Verwendet bidirektionale LSTM, falls True.
+            checkpoint_path=args.checkpoint_path,  # Path to save or load the checkpoint.  # Pfad zum Speichern oder Laden des Checkpoints.
+            label_smoothing=args.label_smoothing,  # Smoothing factor for labels.  # Glättungsfaktor für Labels.
+            devices=args.devices,  # List of devices to use (e.g., GPUs).  # Liste der zu verwendenden Geräte (z. B. GPUs).
+            accelerator=args.accelerator,  # Accelerator type (e.g., GPU, TPU).  # Typ des Beschleunigers (z. B. GPU, TPU).
+            precision=args.precision,  # Numerical precision for calculations.  # Numerische Genauigkeit für Berechnungen.
+            strategy=args.strategy,  # Strategy for distributed training.  # Strategie für verteiltes Training.
+            report_to=args.report_to,  # Platform to report metrics (e.g., WandB).  # Plattform zur Berichterstattung von Metriken (z. B. WandB).
+            find_lr=args.find_lr,  # Whether to perform learning rate finding.  # Gibt an, ob die Lernrate gefunden werden soll.
+            learning_rate=args.learning_rate,  # Initial learning rate for training.  # Anfangs-Lernrate für das Training.
+            weight_decay=args.weight_decay,  # Weight decay for regularization.  # Gewichtungsabnahme zur Regularisierung.
+            optimizer_name=args.optimizer_name,  # Name of the optimizer.  # Name des Optimierers.
+            scheduler_name=args.scheduler_name,  # Name of the learning rate scheduler.  # Name des Lernraten-Schedulers.
+            warmup_factor=args.warmup_factor,  # Factor for learning rate warm-up.  # Faktor für das Lernenraten-Warmup.
         )
 
-    else:
-        continue_training(
-            checkpoint_path=args.checkpoint_path,
-            train_dir=args.train_dir,
-            val_dir=args.val_dir,
-            test_dir=args.test_dir,
-            output_dir=args.output_dir,
-            batch_size=args.batch_size,
-            accumulation_steps=args.accumulation_steps,
-            max_epochs=args.max_epochs,
-            mask_prob=args.mask_prob,
-            hide_map_prob=args.hide_map_prob,
-            dropout_images_prob=args.dropout_images_prob,
-            dataloader_num_workers=args.dataloader_num_workers,
-            devices=args.devices,
-            accelerator=args.accelerator,
-            precision=args.precision,
-            strategy=args.strategy,
-            report_to=args.report_to,
+    else:  # If training a new model is not required.  # Wenn kein neues Modell trainiert werden muss.
+        continue_training(  # Call the function to continue training an existing model.  # Ruft die Funktion auf, um das Training eines bestehenden Modells fortzusetzen.
+            checkpoint_path=args.checkpoint_path,  # Path to load the checkpoint.  # Pfad zum Laden des Checkpoints.
+            train_dir=args.train_dir,  # Directory containing training data.  # Verzeichnis mit den Trainingsdaten.
+            val_dir=args.val_dir,  # Directory containing validation data.  # Verzeichnis mit den Validierungsdaten.
+            test_dir=args.test_dir,  # Directory containing test data.  # Verzeichnis mit den Testdaten.
+            output_dir=args.output_dir,  # Directory to save the model outputs.  # Verzeichnis, in dem die Modellausgaben gespeichert werden.
+            batch_size=args.batch_size,  # Batch size for training.  # Batch-Größe für das Training.
+            accumulation_steps=args.accumulation_steps,  # Number of steps for gradient accumulation.  # Anzahl der Schritte zur Gradientenakkumulation.
+            max_epochs=args.max_epochs,  # Maximum number of epochs for training.  # Maximale Anzahl an Epochen für das Training.
+            mask_prob=args.mask_prob,  # Probability of masking inputs.  # Wahrscheinlichkeit, Eingaben zu maskieren.
+            hide_map_prob=args.hide_map_prob,  # Probability of hiding parts of the map.  # Wahrscheinlichkeit, Teile der Karte zu verstecken.
+            dropout_images_prob=args.dropout_images_prob,  # Probability of dropping images during training.  # Wahrscheinlichkeit, Bilder während des Trainings auszublenden.
+            dataloader_num_workers=args.dataloader_num_workers,  # Number of workers for data loading.  # Anzahl der Worker für das Laden von Daten.
+            devices=args.devices,  # List of devices to use (e.g., GPUs).  # Liste der zu verwendenden Geräte (z. B. GPUs).
+            accelerator=args.accelerator,  # Accelerator type (e.g., GPU, TPU).  # Typ des Beschleunigers (z. B. GPU, TPU).
+            precision=args.precision,  # Numerical precision for calculations.  # Numerische Genauigkeit für Berechnungen.
+            strategy=args.strategy,  # Strategy for distributed training.  # Strategie für verteiltes Training.
+            report_to=args.report_to,  # Platform to report metrics (e.g., WandB).  # Plattform zur Berichterstattung von Metriken (z. B. WandB).
         )
+
