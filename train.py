@@ -207,384 +207,380 @@ experiment_name = os.path.basename(  # Get the base name of the output directory
 )
 
 
-
-
-
-///////////////////// C O N T I N U E  
-
-
-
-
-
-
-
-
-
-
-
-    if report_to == "tensorboard":
-        logger = pl_loggers.TensorBoardLogger(
-            save_dir=output_dir,
-            name=experiment_name,
+if report_to == "tensorboard":  # Check if reporting is set to 'tensorboard'.  # Überprüfen, ob das Reporting auf 'tensorboard' gesetzt ist.
+        logger = pl_loggers.TensorBoardLogger(  # Initialize the TensorBoard logger.  # Initialisiert den TensorBoard-Logger.
+            save_dir=output_dir,  # Directory where logs are saved.  # Verzeichnis, in dem Logs gespeichert werden.
+            name=experiment_name,  # Name of the experiment.  # Name des Experiments.
         )
-    elif report_to == "wandb":
-        logger = pl_loggers.WandbLogger(
-            name=experiment_name,
-            # id=experiment_name,
-            # resume=None,
-            project="TEDD1104",
-            save_dir=output_dir,
+    elif report_to == "wandb":  # Check if reporting is set to 'wandb'.  # Überprüfen, ob das Reporting auf 'wandb' gesetzt ist.
+        logger = pl_loggers.WandbLogger(  # Initialize the Wandb logger.  # Initialisiert den Wandb-Logger.
+            name=experiment_name,  # Name of the experiment.  # Name des Experiments.
+            # id=experiment_name,  # Optional: Experiment ID.  # Optional: Experiment-ID.
+            # resume=None,  # Optional: Resume from a previous run.  # Optional: Fortsetzung eines vorherigen Laufs.
+            project="TEDD1104",  # Name of the Wandb project.  # Name des Wandb-Projekts.
+            save_dir=output_dir,  # Directory where logs are saved.  # Verzeichnis, in dem Logs gespeichert werden.
         )
-    else:
-        raise ValueError(
-            f"Unknown logger: {report_to}. Please use 'tensorboard' or 'wandb'."
+    else:  # If neither 'tensorboard' nor 'wandb' is specified.  # Wenn weder 'tensorboard' noch 'wandb' angegeben ist.
+        raise ValueError(  # Raise an error for unknown logger.  # Wirft einen Fehler für unbekannten Logger.
+            f"Unknown logger: {report_to}. Please use 'tensorboard' or 'wandb'."  # Error message.  # Fehlermeldung.
         )
 
-    lr_monitor = pl.callbacks.LearningRateMonitor(logging_interval="step")
-    checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        dirpath=output_dir,
-        monitor="Validation/acc_k@1_macro",
-        mode="max",
-        save_last=True,
+    lr_monitor = pl.callbacks.LearningRateMonitor(logging_interval="step")  # Monitor and log learning rates at each step.  # Überwacht und protokolliert die Lernraten bei jedem Schritt.
+    checkpoint_callback = pl.callbacks.ModelCheckpoint(  # Set up a model checkpoint callback.  # Richtet einen Checkpoint-Callback für das Modell ein.
+        dirpath=output_dir,  # Directory to save checkpoints.  # Verzeichnis zum Speichern von Checkpoints.
+        monitor="Validation/acc_k@1_macro",  # Metric to monitor for saving.  # Metrik, die überwacht wird.
+        mode="max",  # Save based on the maximum value of the monitored metric.  # Speichern basierend auf dem Maximalwert der überwachten Metrik.
+        save_last=True,  # Save the last checkpoint.  # Speichert den letzten Checkpoint.
     )
-    checkpoint_callback.CHECKPOINT_NAME_LAST = "{epoch}-last"
+    checkpoint_callback.CHECKPOINT_NAME_LAST = "{epoch}-last"  # Define the naming format for the last checkpoint.  # Definiert das Namensformat für den letzten Checkpoint.
 
-    model.accelerator = accelerator
+    model.accelerator = accelerator  # Assign the accelerator to the model.  # Weist dem Modell den Accelerator zu.
 
-    trainer = pl.Trainer(
-        devices=devices,
-        accelerator=accelerator,
-        precision=precision if precision == "bf16" else int(precision),
-        strategy=strategy,
-        val_check_interval=val_check_interval,
-        accumulate_grad_batches=accumulation_steps,
-        max_epochs=max_epochs,
-        logger=logger,
-        callbacks=[
-            # pl.callbacks.StochasticWeightAveraging(swa_lrs=1e-2),
-            checkpoint_callback,
-            lr_monitor,
+    trainer = pl.Trainer(  # Create a PyTorch Lightning Trainer instance.  # Erstellt eine Instanz des PyTorch Lightning Trainers.
+        devices=devices,  # Specify the devices to use for training.  # Gibt die zu verwendenden Geräte für das Training an.
+        accelerator=accelerator,  # Specify the type of accelerator (e.g., GPU, CPU).  # Gibt den Typ des Accelerators an (z. B. GPU, CPU).
+        precision=precision if precision == "bf16" else int(precision),  # Use bf16 precision or convert precision to an integer.  # Verwendet bf16-Präzision oder konvertiert Präzision in eine Ganzzahl.
+        strategy=strategy,  # Specify the training strategy (e.g., 'ddp').  # Gibt die Trainingsstrategie an (z. B. 'ddp').
+        val_check_interval=val_check_interval,  # Interval for validation checks.  # Intervall für Validierungsprüfungen.
+        accumulate_grad_batches=accumulation_steps,  # Accumulate gradients over several batches.  # Akkumuliert Gradienten über mehrere Batches.
+        max_epochs=max_epochs,  # Set the maximum number of training epochs.  # Legt die maximale Anzahl von Trainingsepochen fest.
+        logger=logger,  # Assign the logger to the trainer.  # Weist dem Trainer den Logger zu.
+        callbacks=[  # List of callbacks to use during training.  # Liste der Callbacks, die während des Trainings verwendet werden.
+            # pl.callbacks.StochasticWeightAveraging(swa_lrs=1e-2),  # Optional: Apply stochastic weight averaging.  # Optional: Stochastisches Gewichtsmittel anwenden.
+            checkpoint_callback,  # Add the checkpoint callback.  # Fügt den Checkpoint-Callback hinzu.
+            lr_monitor,  # Add the learning rate monitor callback.  # Fügt den Lernraten-Monitoring-Callback hinzu.
         ],
-        gradient_clip_val=1.0 if optimizer_name.lower() != "adafactor" else 0.0,
-        log_every_n_steps=100,
-        auto_lr_find=find_lr,
+        gradient_clip_val=1.0 if optimizer_name.lower() != "adafactor" else 0.0,  # Clip gradients unless optimizer is Adafactor.  # Begrenzen der Gradienten, außer der Optimierer ist Adafactor.
+        log_every_n_steps=100,  # Log metrics every 100 steps.  # Protokolliert Metriken alle 100 Schritte.
+        auto_lr_find=find_lr,  # Automatically find the best learning rate.  # Findet automatisch die beste Lernrate.
     )
 
+if find_lr:  # Check if the learning rate finder should be executed.  # Überprüft, ob der Lernratenfinder ausgeführt werden soll.
+    print(f"We will try to find the optimal learning rate.")  # Inform the user that the process of finding the learning rate is starting.  # Informiert den Benutzer, dass der Prozess zur Bestimmung der optimalen Lernrate startet.
+    lr_finder = trainer.tuner.lr_find(model, datamodule=data)  # Use the trainer's tuner to find an optimal learning rate using the data module.  # Verwendet den Tuner des Trainers, um eine optimale Lernrate mit dem Datenmodul zu finden.
+    print(lr_finder.results)  # Print the results of the learning rate finder.  # Gibt die Ergebnisse des Lernratenfinders aus.
+    fig = lr_finder.plot(suggest=True)  # Plot the learning rate curve and suggest the best one.  # Plottet die Lernratenkurve und schlägt die beste vor.
+    fig.savefig(os.path.join(output_dir, "lr_finder.png"))  # Save the learning rate plot as an image in the output directory.  # Speichert das Diagramm der Lernrate als Bild im Ausgabeverzeichnis.
+    new_lr = lr_finder.suggestion()  # Get the suggested optimal learning rate from the finder.  # Holt die empfohlene optimale Lernrate vom Finder.
+    print(f"We will train with the suggested learning rate: {new_lr}")  # Inform the user about the chosen learning rate.  # Informiert den Benutzer über die ausgewählte Lernrate.
+    model.hparams.learning_rate = new_lr  # Set the model's learning rate to the suggested value.  # Setzt die Lernrate des Modells auf den vorgeschlagenen Wert.
 
+trainer.fit(model, datamodule=data)  # Train the model using the specified data module.  # Trainiert das Modell mit dem angegebenen Datenmodul.
 
+print(f"Best model path: {checkpoint_callback.best_model_path}")  # Print the path to the best model saved during training.  # Gibt den Pfad zum besten während des Trainings gespeicherten Modell aus.
+if test_dir:  # Check if a testing directory is provided.  # Überprüft, ob ein Testverzeichnis angegeben ist.
+    trainer.test(datamodule=data, ckpt_path="best")  # Test the model using the best checkpoint and the data module.  # Testet das Modell mit dem besten Checkpoint und dem Datenmodul.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    if find_lr:
-        print(f"We will try to find the optimal learning rate.")
-        lr_finder = trainer.tuner.lr_find(model, datamodule=data)
-        print(lr_finder.results)
-        fig = lr_finder.plot(suggest=True)
-        fig.savefig(os.path.join(output_dir, "lr_finder.png"))
-        new_lr = lr_finder.suggestion()
-        print(f"We will train with the suggested learning rate: {new_lr}")
-        model.hparams.learning_rate = new_lr
-
-    trainer.fit(model, datamodule=data)
-
-    print(f"Best model path: {checkpoint_callback.best_model_path}")
-    if test_dir:
-        trainer.test(datamodule=data, ckpt_path="best")
-
-
-def continue_training(
-    checkpoint_path: str,
-    train_dir: str,
-    val_dir: str,
-    batch_size: int,
-    max_epochs: int,
-    output_dir,
-    accumulation_steps,
-    devices: int = 1,
-    accelerator: str = "auto",
-    precision: str = "16",
-    strategy=None,
-    test_dir: str = None,
-    mask_prob: float = 0.0,
-    hide_map_prob: float = 0.0,
-    dropout_images_prob=None,
-    dataloader_num_workers=os.cpu_count(),
-    val_check_interval: float = 0.25,
-    report_to: str = "wandb",
+def continue_training(  # Define a function for resuming training with given parameters.  # Definiert eine Funktion zum Fortsetzen des Trainings mit gegebenen Parametern.
+    checkpoint_path: str,  # Path to the checkpoint from which to resume training.  # Pfad zum Checkpoint, von dem das Training fortgesetzt wird.
+    train_dir: str,  # Path to the training data directory.  # Pfad zum Verzeichnis der Trainingsdaten.
+    val_dir: str,  # Path to the validation data directory.  # Pfad zum Verzeichnis der Validierungsdaten.
+    batch_size: int,  # Number of samples per batch for training.  # Anzahl der Proben pro Batch für das Training.
+    max_epochs: int,  # Maximum number of epochs to train.  # Maximale Anzahl an Epochen für das Training.
+    output_dir,  # Directory where outputs like logs and checkpoints will be saved.  # Verzeichnis, in dem Ausgaben wie Protokolle und Checkpoints gespeichert werden.
+    accumulation_steps,  # Number of steps to accumulate gradients before updating weights.  # Anzahl der Schritte zur Akkumulation von Gradienten vor der Gewichtsaktualisierung.
+    devices: int = 1,  # Number of devices (e.g., GPUs) to use.  # Anzahl der Geräte (z. B. GPUs), die verwendet werden sollen.
+    accelerator: str = "auto",  # Accelerator to use, e.g., GPU or CPU, determined automatically.  # Beschleuniger zur Verwendung, z. B. GPU oder CPU, automatisch ermittelt.
+    precision: str = "16",  # Precision for computations, e.g., 16-bit floating point.  # Präzision für Berechnungen, z. B. 16-Bit-Gleitkomma.
+    strategy=None,  # Strategy for distributed training, if applicable.  # Strategie für verteiltes Training, falls anwendbar.
+    test_dir: str = None,  # Directory for testing data, if any.  # Verzeichnis für Testdaten, falls vorhanden.
+    mask_prob: float = 0.0,  # Probability of masking elements in the training data.  # Wahrscheinlichkeit, Elemente in den Trainingsdaten zu maskieren.
+    hide_map_prob: float = 0.0,  # Probability of hiding map data during training.  # Wahrscheinlichkeit, Kartendaten während des Trainings zu verbergen.
+    dropout_images_prob=None,  # Probability of dropping images during training, if applicable.  # Wahrscheinlichkeit, Bilder während des Trainings wegzulassen, falls anwendbar.
+    dataloader_num_workers=os.cpu_count(),  # Number of workers for data loading, defaults to CPU count.  # Anzahl der Worker für das Laden von Daten, standardmäßig die Anzahl der CPU-Kerne.
+    val_check_interval: float = 0.25,  # Interval at which validation is performed during training.  # Intervall, in dem die Validierung während des Trainings durchgeführt wird.
+    report_to: str = "wandb",  # Platform to report logs and metrics to, e.g., Weights & Biases.  # Plattform, auf der Protokolle und Metriken gemeldet werden, z. B. Weights & Biases.
 ):
 
-    """
-    Continues training a model from a checkpoint.
+"""
+Continues training a model from a checkpoint.
 
-    :param str checkpoint_path: Path to the checkpoint to continue training from
-    :param str train_dir: The directory containing the training data.
-    :param str val_dir: The directory containing the validation data.
-    :param str output_dir: The directory to save the model to.
-    :param int batch_size: The batch size.
-    :param int accumulation_steps: The number of steps to accumulate gradients.
-    :param int devices: Number of devices to use.
-    :param str accelerator: Accelerator to use. If 'auto', tries to automatically detect TPU, GPU, CPU or IPU system.
-    :param str precision: Precision to use. Double precision (64), full precision (32), half precision (16) or bfloat16
-                          precision (bf16). Can be used on CPU, GPU or TPUs.
-    :param str strategy: Strategy to use for data parallelism. "None" for no data parallelism,
-                         ddp_find_unused_parameters_false for DDP.
-    :param str report_to: Where to report the results. "tensorboard" for TensorBoard, "wandb" for W&B.
-    :param int max_epochs: The maximum number of epochs to train for.
-    :param bool hide_map_prob: Probability of hiding the minimap (0<=hide_map_prob<=1)
-    :param float mask_prob: probability of masking each input vector in the transformer
-    :param float dropout_images_prob: Probability of dropping an image (0<=dropout_images_prob<=1)
-    :param str test_dir: The directory containing the test data.
-    :param int dataloader_num_workers: The number of workers to use for the dataloaders.
-    :param float val_check_interval: The interval in epochs to check the validation accuracy.
-    """
+:param str checkpoint_path: Path to the checkpoint to continue training from.  # Path zur Checkpoint-Datei, von der aus das Training fortgesetzt wird.
+:param str train_dir: The directory containing the training data.  # Verzeichnis, das die Trainingsdaten enthält.
+:param str val_dir: The directory containing the validation data.  # Verzeichnis, das die Validierungsdaten enthält.
+:param str output_dir: The directory to save the model to.  # Verzeichnis, in dem das Modell gespeichert wird.
+:param int batch_size: The batch size.  # Größe der Datenblöcke (Batches).
+:param int accumulation_steps: The number of steps to accumulate gradients.  # Anzahl der Schritte, um Gradienten zu akkumulieren.
+:param int devices: Number of devices to use.  # Anzahl der zu verwendenden Geräte.
+:param str accelerator: Accelerator to use. If 'auto', tries to automatically detect TPU, GPU, CPU or IPU system.  # Beschleuniger, der verwendet werden soll. Bei 'auto' wird versucht, TPU, GPU, CPU oder IPU automatisch zu erkennen.
+:param str precision: Precision to use. Double precision (64), full precision (32), half precision (16) or bfloat16 precision (bf16). Can be used on CPU, GPU or TPUs.  # Verwendete Präzision: doppelte Präzision (64), volle Präzision (32), halbe Präzision (16) oder bfloat16-Präzision (bf16). Kann auf CPU, GPU oder TPU verwendet werden.
+:param str strategy: Strategy to use for data parallelism. "None" for no data parallelism, ddp_find_unused_parameters_false for DDP.  # Strategie für Datenparallelität. "None" für keine Parallelität, "ddp_find_unused_parameters_false" für DDP.
+:param str report_to: Where to report the results. "tensorboard" for TensorBoard, "wandb" for W&B.  # Wohin die Ergebnisse gemeldet werden sollen. "tensorboard" für TensorBoard, "wandb" für W&B.
+:param int max_epochs: The maximum number of epochs to train for.  # Maximale Anzahl von Epochen, die trainiert werden.
+:param bool hide_map_prob: Probability of hiding the minimap (0<=hide_map_prob<=1).  # Wahrscheinlichkeit, die Minimap zu verstecken (0<=hide_map_prob<=1).
+:param float mask_prob: Probability of masking each input vector in the transformer.  # Wahrscheinlichkeit, jeden Eingabevektor im Transformer zu maskieren.
+:param float dropout_images_prob: Probability of dropping an image (0<=dropout_images_prob<=1).  # Wahrscheinlichkeit, ein Bild fallen zu lassen (0<=dropout_images_prob<=1).
+:param str test_dir: The directory containing the test data.  # Verzeichnis, das die Testdaten enthält.
+:param int dataloader_num_workers: The number of workers to use for the dataloaders.  # Anzahl der Arbeiter, die für die Datenlader verwendet werden.
+:param float val_check_interval: The interval in epochs to check the validation accuracy.  # Intervall (in Epochen), um die Validierungsgenauigkeit zu prüfen.
+"""
 
-    if dropout_images_prob is None:
-        dropout_images_prob = [0.0, 0.0, 0.0, 0.0, 0.0]
 
-    print(f"Restoring checkpoint: {checkpoint_path}")
+if dropout_images_prob is None:  # Check if `dropout_images_prob` is not provided.  # Überprüfen, ob `dropout_images_prob` nicht angegeben ist.
+    dropout_images_prob = [0.0, 0.0, 0.0, 0.0, 0.0]  # Set default dropout probabilities for images.  # Standardwerte für Dropout-Wahrscheinlichkeiten für Bilder setzen.
 
-    model = Tedd1104ModelPL.load_from_checkpoint(checkpoint_path=checkpoint_path)
+print(f"Restoring checkpoint: {checkpoint_path}")  # Print a message indicating the restoration of a checkpoint.  # Nachricht ausgeben, dass ein Checkpoint wiederhergestellt wird.
 
-    print("Done! Preparing to continue training...")
+model = Tedd1104ModelPL.load_from_checkpoint(checkpoint_path=checkpoint_path)  # Load the model from the specified checkpoint.  # Modell aus dem angegebenen Checkpoint laden.
 
-    data = Tedd1104DataModule(
-        train_dir=train_dir,
-        val_dir=val_dir,
-        test_dir=test_dir,
-        batch_size=batch_size,
-        hide_map_prob=hide_map_prob,
-        dropout_images_prob=dropout_images_prob,
-        control_mode=model.control_mode,
-        num_workers=dataloader_num_workers,
-        token_mask_prob=mask_prob,
-        transformer_nheads=None if model.encoder_type == "lstm" else model.nhead,
-        sequence_length=model.sequence_size,
+print("Done! Preparing to continue training...")  # Print a message indicating readiness to continue training.  # Nachricht ausgeben, dass das Training fortgesetzt wird.
+
+data = Tedd1104DataModule(  # Initialize the data module for training, validation, and testing.  # Datenmodul für Training, Validierung und Tests initialisieren.
+    train_dir=train_dir,  # Path to the training data directory.  # Pfad zum Verzeichnis der Trainingsdaten.
+    val_dir=val_dir,  # Path to the validation data directory.  # Pfad zum Verzeichnis der Validierungsdaten.
+    test_dir=test_dir,  # Path to the testing data directory.  # Pfad zum Verzeichnis der Testdaten.
+    batch_size=batch_size,  # Number of samples per batch.  # Anzahl der Samples pro Batch.
+    hide_map_prob=hide_map_prob,  # Probability of hiding the map during training.  # Wahrscheinlichkeit, die Karte während des Trainings auszublenden.
+    dropout_images_prob=dropout_images_prob,  # Dropout probabilities for images.  # Dropout-Wahrscheinlichkeiten für Bilder.
+    control_mode=model.control_mode,  # Control mode determined by the model.  # Kontrollmodus, der durch das Modell festgelegt wird.
+    num_workers=dataloader_num_workers,  # Number of workers for data loading.  # Anzahl der Worker für das Laden der Daten.
+    token_mask_prob=mask_prob,  # Probability of masking tokens during training.  # Wahrscheinlichkeit, Token während des Trainings zu maskieren.
+    transformer_nheads=None if model.encoder_type == "lstm" else model.nhead,  # Number of attention heads, if the model is not LSTM.  # Anzahl der Attention-Köpfe, falls das Modell kein LSTM ist.
+    sequence_length=model.sequence_size,  # Sequence length for training.  # Sequenzlänge für das Training.
+)
+
+experiment_name = os.path.basename(  # Extract the experiment name from the output directory path.  # Experimentname aus dem Pfad des Ausgabe-Verzeichnisses extrahieren.
+    output_dir if output_dir[-1] != "/" else output_dir[:-1]  # Handle trailing slash in the directory path.  # Umgang mit einem abschließenden Schrägstrich im Verzeichnispfad.
+)
+
+if report_to == "tensorboard":  # Check if logging should use TensorBoard.  # Überprüfen, ob Logging mit TensorBoard erfolgen soll.
+    logger = pl_loggers.TensorBoardLogger(  # Initialize a TensorBoard logger.  # Einen TensorBoard-Logger initialisieren.
+        save_dir=output_dir,  # Directory to save logs.  # Verzeichnis zum Speichern der Logs.
+        name=experiment_name,  # Name of the experiment.  # Name des Experiments.
+    )
+elif report_to == "wandb":  # Check if logging should use Weights & Biases (wandb).  # Überprüfen, ob Logging mit Weights & Biases (wandb) erfolgen soll.
+    logger = pl_loggers.WandbLogger(  # Initialize a wandb logger.  # Einen wandb-Logger initialisieren.
+        name=experiment_name,  # Name of the experiment.  # Name des Experiments.
+        # id=experiment_name,  # Optional experiment ID (commented).  # Optionale Experiment-ID (auskommentiert).
+        # resume="allow",  # Optional resume setting (commented).  # Optionale Fortsetzungs-Einstellung (auskommentiert).
+        project="TEDD1104",  # Name of the wandb project.  # Name des wandb-Projekts.
+        save_dir=output_dir,  # Directory to save wandb logs.  # Verzeichnis zum Speichern der wandb-Logs.
+    )
+else:  # Raise an error for unsupported logger types.  # Fehler auslösen für nicht unterstützte Logger-Typen.
+    raise ValueError(  # Raise an exception with an error message.  # Ausnahme mit einer Fehlermeldung auslösen.
+        f"Unknown logger: {report_to}. Please use 'tensorboard' or 'wandb'."  # Error message for unsupported logger.  # Fehlermeldung für nicht unterstützten Logger.
     )
 
-    experiment_name = os.path.basename(
-        output_dir if output_dir[-1] != "/" else output_dir[:-1]
-    )
-    if report_to == "tensorboard":
-        logger = pl_loggers.TensorBoardLogger(
-            save_dir=output_dir,
-            name=experiment_name,
-        )
-    elif report_to == "wandb":
-        logger = pl_loggers.WandbLogger(
-            name=experiment_name,
-            # id=experiment_name,
-            # resume="allow",
-            project="TEDD1104",
-            save_dir=output_dir,
-        )
-    else:
-        raise ValueError(
-            f"Unknown logger: {report_to}. Please use 'tensorboard' or 'wandb'."
-        )
+lr_monitor = pl.callbacks.LearningRateMonitor(logging_interval="step")  # Create a learning rate monitor to log at each step.  # Lernraten-Monitor erstellen, der bei jedem Schritt loggt.
 
-    lr_monitor = pl.callbacks.LearningRateMonitor(logging_interval="step")
+checkpoint_callback = pl.callbacks.ModelCheckpoint(  # Create a checkpoint callback to save model states.  # Checkpoint-Callback erstellen, um Modellzustände zu speichern.
+    dirpath=output_dir,  # Directory to save checkpoints.  # Verzeichnis zum Speichern der Checkpoints.
+    monitor="Validation/acc_k@1_macro",  # Metric to monitor for saving checkpoints.  # Zu überwachende Metrik für das Speichern der Checkpoints.
+    mode="max",  # Save checkpoints with the maximum metric value.  # Checkpoints mit maximalem Metrikwert speichern.
+    save_last=True,  # Always save the last checkpoint.  # Immer den letzten Checkpoint speichern.
+)
+checkpoint_callback.CHECKPOINT_NAME_LAST = "{epoch}-last"  # Define a custom name for the last checkpoint.  # Benutzerdefinierten Namen für den letzten Checkpoint festlegen.
 
-    checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        dirpath=output_dir,
-        monitor="Validation/acc_k@1_macro",
-        mode="max",
-        save_last=True,
-    )
-    checkpoint_callback.CHECKPOINT_NAME_LAST = "{epoch}-last"
+trainer = pl.Trainer(  # Initialize the PyTorch Lightning Trainer.  # PyTorch Lightning Trainer initialisieren.
+    devices=devices,  # Devices to use (e.g., CPU or GPU).  # Zu verwendende Geräte (z. B. CPU oder GPU).
+    accelerator=accelerator,  # Type of accelerator (e.g., 'gpu' or 'cpu').  # Art des Beschleunigers (z. B. 'gpu' oder 'cpu').
+    precision=precision if precision == "bf16" else int(precision),  # Numerical precision (e.g., 16-bit or 32-bit).  # Numerische Genauigkeit (z. B. 16-Bit oder 32-Bit).
+    strategy=strategy,  # Training strategy (e.g., distributed training).  # Trainingsstrategie (z. B. verteiltes Training).
+    val_check_interval=val_check_interval,  # Frequency of validation checks.  # Häufigkeit der Validierungsüberprüfungen.
+    accumulate_grad_batches=accumulation_steps,  # Accumulate gradients over multiple batches.  # Gradienten über mehrere Batches akkumulieren.
+    max_epochs=max_epochs,  # Maximum number of training epochs.  # Maximale Anzahl der Trainingsepochen.
+    logger=logger,  # Logger instance for experiment tracking.  # Logger-Instanz zur Nachverfolgung des Experiments.
+    callbacks=[  # List of callbacks to use during training.  # Liste der während des Trainings zu verwendenden Callbacks.
+        pl.callbacks.StochasticWeightAveraging(swa_lrs=1e-2),  # Apply Stochastic Weight Averaging (SWA).  # Stochastic Weight Averaging (SWA) anwenden.
+        checkpoint_callback,  # Add the checkpoint callback.  # Checkpoint-Callback hinzufügen.
+        lr_monitor,  # Add the learning rate monitor.  # Lernraten-Monitor hinzufügen.
+    ],
+    gradient_clip_val=1.0,  # Clip gradients to avoid exploding gradients.  # Gradienten begrenzen, um explodierende Gradienten zu vermeiden.
+    log_every_n_steps=100,  # Log metrics every 100 steps.  # Metriken alle 100 Schritte loggen.
+)
 
-    trainer = pl.Trainer(
-        devices=devices,
-        accelerator=accelerator,
-        precision=precision if precision == "bf16" else int(precision),
-        strategy=strategy,
-        val_check_interval=val_check_interval,
-        accumulate_grad_batches=accumulation_steps,
-        max_epochs=max_epochs,
-        logger=logger,
-        callbacks=[
-            pl.callbacks.StochasticWeightAveraging(swa_lrs=1e-2),
-            checkpoint_callback,
-            lr_monitor,
-        ],
-        gradient_clip_val=1.0,
-        log_every_n_steps=100,
+trainer.fit(  # Start the training process.  # Den Trainingsprozess starten.
+    ckpt_path=checkpoint_path,  # Path to the checkpoint for resuming training.  # Pfad zum Checkpoint, um das Training fortzusetzen.
+    model=model,  # Model instance to train.  # Zu trainierendes Modell.
+    datamodule=data,  # Data module instance for loading data.  # Datenmodul-Instanz zum Laden der Daten.
+)
+
+if test_dir:  # Check if a test directory is specified.  # Überprüfen, ob ein Testverzeichnis angegeben ist.
+    trainer.test(datamodule=data, ckpt_path="best")  # Test the model using the best checkpoint.  # Das Modell mit dem besten Checkpoint testen.
+
+
+
+if __name__ == "__main__":  # Ensures this script runs only when executed directly.  # Stellt sicher, dass dieses Skript nur ausgeführt wird, wenn es direkt ausgeführt wird.
+
+    parser = argparse.ArgumentParser(  # Initializes an argument parser for command-line inputs.  # Initialisiert einen Argumentparser für Kommandozeileneingaben.
+        description="Train a T.E.D.D. 1104 model in the supervised self-driving task."  # Provides a description for the parser.  # Gibt eine Beschreibung für den Parser an.
     )
 
-    trainer.fit(
-        ckpt_path=checkpoint_path,
-        model=model,
-        datamodule=data,
+    group = parser.add_mutually_exclusive_group(required=True)  # Creates a group of mutually exclusive arguments, one of which must be provided.  # Erstellt eine Gruppe von sich gegenseitig ausschließenden Argumenten, von denen eines angegeben werden muss.
+
+    group.add_argument(  # Adds the first argument to the mutually exclusive group.  # Fügt der Gruppe das erste Argument hinzu.
+        "--train_new",  # Flag for training a new model.  # Flag zum Trainieren eines neuen Modells.
+        action="store_true",  # Stores True if this flag is present.  # Speichert True, wenn dieses Flag gesetzt ist.
+        help="Train a new model",  # Describes the purpose of this flag.  # Beschreibt die Funktion dieses Flags.
     )
 
-    # print(f"Best model path: {checkpoint_callback.best_model_path}")
-
-    if test_dir:
-        trainer.test(datamodule=data, ckpt_path="best")
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Train a T.E.D.D. 1104 model in the supervised self-driving task."
+    group.add_argument(  # Adds the second argument to the mutually exclusive group.  # Fügt der Gruppe das zweite Argument hinzu.
+        "--continue_training",  # Flag for continuing training from a checkpoint.  # Flag zum Fortsetzen des Trainings von einem Checkpoint.
+        action="store_true",  # Stores True if this flag is present.  # Speichert True, wenn dieses Flag gesetzt ist.
+        help="Continues training a model from a checkpoint.",  # Describes the purpose of this flag.  # Beschreibt die Funktion dieses Flags.
     )
 
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "--train_new",
-        action="store_true",
-        help="Train a new model",
+    parser.add_argument(  # Adds a required argument for the training data directory.  # Fügt ein erforderliches Argument für das Trainingsdatenverzeichnis hinzu.
+        "--train_dir",  # Specifies the training data directory.  # Gibt das Trainingsdatenverzeichnis an.
+        type=str,  # Expects a string input.  # Erwartet eine Eingabe vom Typ String.
+        required=True,  # This argument is mandatory.  # Dieses Argument ist verpflichtend.
+        help="The directory containing the training data.",  # Describes the purpose of this argument.  # Beschreibt die Funktion dieses Arguments.
     )
 
-    group.add_argument(
-        "--continue_training",
-        action="store_true",
-        help="Continues training a model from a checkpoint.",
+    parser.add_argument(  # Adds a required argument for the validation data directory.  # Fügt ein erforderliches Argument für das Validierungsdatenverzeichnis hinzu.
+        "--val_dir",  # Specifies the validation data directory.  # Gibt das Validierungsdatenverzeichnis an.
+        type=str,  # Expects a string input.  # Erwartet eine Eingabe vom Typ String.
+        required=True,  # This argument is mandatory.  # Dieses Argument ist verpflichtend.
+        help="The directory containing the validation data.",  # Describes the purpose of this argument.  # Beschreibt die Funktion dieses Arguments.
     )
 
-    parser.add_argument(
-        "--train_dir",
-        type=str,
-        required=True,
-        help="The directory containing the training data.",
+    parser.add_argument(  # Adds an optional argument for the test data directory.  # Fügt ein optionales Argument für das Testdatenverzeichnis hinzu.
+        "--test_dir",  # Specifies the test data directory.  # Gibt das Testdatenverzeichnis an.
+        type=str,  # Expects a string input.  # Erwartet eine Eingabe vom Typ String.
+        default=None,  # Default value is None if not provided.  # Standardwert ist None, wenn nicht angegeben.
+        help="The directory containing the test data.",  # Describes the purpose of this argument.  # Beschreibt die Funktion dieses Arguments.
     )
 
-    parser.add_argument(
-        "--val_dir",
-        type=str,
-        required=True,
-        help="The directory containing the validation data.",
+    parser.add_argument(  # Adds a required argument for the output directory.  # Fügt ein erforderliches Argument für das Ausgabe-Verzeichnis hinzu.
+        "--output_dir",  # Specifies where to save the model.  # Gibt an, wo das Modell gespeichert werden soll.
+        type=str,  # Expects a string input.  # Erwartet eine Eingabe vom Typ String.
+        required=True,  # This argument is mandatory.  # Dieses Argument ist verpflichtend.
+        help="The directory to save the model to.",  # Describes the purpose of this argument.  # Beschreibt die Funktion dieses Arguments.
     )
 
-    parser.add_argument(
-        "--test_dir",
-        type=str,
-        default=None,
-        help="The directory containing the test data.",
+    parser.add_argument(  # Adds an argument to choose the encoder type.  # Fügt ein Argument zur Auswahl des Encoder-Typs hinzu.
+        "--encoder_type",  # Specifies the encoder type to use.  # Gibt den zu verwendenden Encoder-Typ an.
+        type=str,  # Expects a string input.  # Erwartet eine Eingabe vom Typ String.
+        choices=["lstm", "transformer"],  # Limits options to "lstm" or "transformer".  # Beschränkt die Optionen auf "lstm" oder "transformer".
+        default="transformer",  # Default encoder is "transformer".  # Der Standardencoder ist "transformer".
+        help="The Encoder type to use: transformer or lstm",  # Describes the purpose of this argument.  # Beschreibt die Funktion dieses Arguments.
     )
 
-    parser.add_argument(
-        "--output_dir",
-        type=str,
-        required=True,
-        help="The directory to save the model to.",
+    parser.add_argument(  # Adds a required argument for the batch size.  # Fügt ein erforderliches Argument für die Batchgröße hinzu.
+        "--batch_size",  # Specifies the batch size.  # Gibt die Batchgröße an.
+        type=int,  # Expects an integer input.  # Erwartet eine Eingabe vom Typ Integer.
+        required=True,  # This argument is mandatory.  # Dieses Argument ist verpflichtend.
+        help="The batch size for training and eval.",  # Describes the purpose of this argument.  # Beschreibt die Funktion dieses Arguments.
     )
 
-    parser.add_argument(
-        "--encoder_type",
-        type=str,
-        choices=["lstm", "transformer"],
-        default="transformer",
-        help="The Encoder type to use: transformer or lstm",
+    parser.add_argument(  # Adds an optional argument for gradient accumulation steps.  # Fügt ein optionales Argument für die Anzahl der Gradientakkumulationsschritte hinzu.
+        "--accumulation_steps",  # Specifies the number of steps to accumulate gradients.  # Gibt die Anzahl der Schritte zur Akkumulation von Gradienten an.
+        type=int,  # Expects an integer input.  # Erwartet eine Eingabe vom Typ Integer.
+        default=1,  # Default value is 1.  # Der Standardwert ist 1.
+        help="The number of steps to accumulate gradients.",  # Describes the purpose of this argument.  # Beschreibt die Funktion dieses Arguments.
     )
 
-    parser.add_argument(
-        "--batch_size",
-        type=int,
-        required=True,
-        help="The batch size for training and eval.",
+    parser.add_argument(  # Adds a required argument for the maximum number of epochs.  # Fügt ein erforderliches Argument für die maximale Anzahl von Epochen hinzu.
+        "--max_epochs",  # Specifies the maximum number of epochs.  # Gibt die maximale Anzahl von Epochen an.
+        type=int,  # Expects an integer input.  # Erwartet eine Eingabe vom Typ Integer.
+        required=True,  # This argument is mandatory.  # Dieses Argument ist verpflichtend.
+        help="The maximum number of epochs to train for.",  # Describes the purpose of this argument.  # Beschreibt die Funktion dieses Arguments.
     )
 
-    parser.add_argument(
-        "--accumulation_steps",
-        type=int,
-        default=1,
-        help="The number of steps to accumulate gradients.",
-    )
 
-    parser.add_argument(
-        "--max_epochs",
-        type=int,
-        required=True,
-        help="The maximum number of epochs to train for.",
-    )
+parser.add_argument(
+    "--dataloader_num_workers",  # Number of CPU workers for the Data Loaders.  # Anzahl der CPU-Worker für die Data Loader.
+    type=int,  # Specifies the type as integer.  # Gibt den Typ als Ganzzahl an.
+    default=os.cpu_count(),  # Uses the number of available CPUs as the default.  # Verwendet die Anzahl verfügbarer CPUs als Standard.
+    help="Number of CPU workers for the Data Loaders",  # Description of the parameter.  # Beschreibung des Parameters.
+)
 
-    parser.add_argument(
-        "--dataloader_num_workers",
-        type=int,
-        default=os.cpu_count(),
-        help="Number of CPU workers for the Data Loaders",
-    )
+parser.add_argument(
+    "--hide_map_prob",  # Probability of hiding the minimap in the sequence (0<=hide_map_prob<=1).  # Wahrscheinlichkeit, die Minikarte in der Sequenz auszublenden (0<=hide_map_prob<=1).
+    type=float,  # Specifies the type as float.  # Gibt den Typ als Gleitkommazahl an.
+    default=0.0,  # Default probability is set to 0.  # Standardwahrscheinlichkeit ist auf 0 gesetzt.
+    help="Probability of hiding the minimap in the sequence (0<=hide_map_prob<=1)",  # Description of the parameter.  # Beschreibung des Parameters.
+)
 
-    parser.add_argument(
-        "--hide_map_prob",
-        type=float,
-        default=0.0,
-        help="Probability of hiding the minimap in the sequence (0<=hide_map_prob<=1)",
-    )
+parser.add_argument(
+    "--dropout_images_prob",  # Probability of dropping each image in the sequence (0<=dropout_images_prob<=1).  # Wahrscheinlichkeit, jedes Bild in der Sequenz zu löschen (0<=dropout_images_prob<=1).
+    type=float,  # Specifies the type as float.  # Gibt den Typ als Gleitkommazahl an.
+    nargs=5,  # Expects 5 float values.  # Erwartet 5 Gleitkommazahlen.
+    default=[0.0, 0.0, 0.0, 0.0, 0.0],  # Default probabilities are all set to 0.  # Standardwahrscheinlichkeiten sind alle auf 0 gesetzt.
+    help="Probability of dropping each image in the sequence (0<=dropout_images_prob<=1)",  # Description of the parameter.  # Beschreibung des Parameters.
+)
 
-    parser.add_argument(
-        "--dropout_images_prob",
-        type=float,
-        nargs=5,
-        default=[0.0, 0.0, 0.0, 0.0, 0.0],
-        help="Probability of dropping each image in the sequence (0<=dropout_images_prob<=1)",
-    )
+parser.add_argument(
+    "--variable_weights",  # List of weights for the loss function depending on control_mode.  # Liste der Gewichte für die Verlustfunktion je nach control_mode.
+    type=float,  # Specifies the type as float.  # Gibt den Typ als Gleitkommazahl an.
+    nargs="+",  # Accepts one or more values.  # Akzeptiert einen oder mehrere Werte.
+    default=None,  # Default is None.  # Standard ist None.
+    help="List of weights for the loss function [9] if control_mode == 'keyboard' or [2] if control_mode == 'controller'",  # Description of the parameter.  # Beschreibung des Parameters.
+)
 
-    parser.add_argument(
-        "--variable_weights",
-        type=float,
-        nargs="+",
-        default=None,
-        help="List of weights for the loss function [9] if control_mode == 'keyboard' "
-        "or [2] if control_mode == 'controller'",
-    )
+parser.add_argument(
+    "--val_check_interval",  # The interval in epochs between validation checks.  # Das Intervall in Epochen zwischen Validierungsprüfungen.
+    type=float,  # Specifies the type as float.  # Gibt den Typ als Gleitkommazahl an.
+    default=1.0,  # Default interval is 1 epoch.  # Standardintervall ist 1 Epoche.
+    help="The interval in epochs between validation checks.",  # Description of the parameter.  # Beschreibung des Parameters.
+)
 
-    parser.add_argument(
-        "--val_check_interval",
-        type=float,
-        default=1.0,
-        help="The interval in epochs between validation checks.",
-    )
+parser.add_argument(
+    "--learning_rate",  # The learning rate for the optimizer.  # Die Lernrate für den Optimierer.
+    type=float,  # Specifies the type as float.  # Gibt den Typ als Gleitkommazahl an.
+    default=3e-5,  # Default learning rate is 0.00003.  # Standard-Lernrate ist 0.00003.
+    help="[NEW MODEL] The learning rate for the optimizer.",  # Description of the parameter.  # Beschreibung des Parameters.
+)
 
-    parser.add_argument(
-        "--learning_rate",
-        type=float,
-        default=3e-5,
-        help="[NEW MODEL] The learning rate for the optimizer.",
-    )
+parser.add_argument(
+    "--weight_decay",  # AdamW weight decay.  # AdamW-Gewichtsabnahme.
+    type=float,  # Specifies the type as float.  # Gibt den Typ als Gleitkommazahl an.
+    default=1e-4,  # Default weight decay is 0.0001.  # Standard-Gewichtsabnahme ist 0.0001.
+    help="[NEW MODEL]] AdamW Weight Decay",  # Description of the parameter.  # Beschreibung des Parameters.
+)
 
-    parser.add_argument(
-        "--weight_decay",
-        type=float,
-        default=1e-4,
-        help="[NEW MODEL]] AdamW Weight Decay",
-    )
+parser.add_argument(
+    "--optimizer_name",  # The optimizer to use: adamw or adafactor.  # Der zu verwendende Optimierer: adamw oder adafactor.
+    type=str,  # Specifies the type as string.  # Gibt den Typ als Zeichenkette an.
+    default="adamw",  # Default optimizer is adamw.  # Standardoptimierer ist adamw.
+    choices=["adamw", "adafactor"],  # Possible choices are adamw and adafactor.  # Mögliche Optionen sind adamw und adafactor.
+    help="[NEW MODEL] The optimizer to use: adamw or adafactor. Adafactor requires fairseq to be installed. pip install fairseq",  # Description and prerequisites.  # Beschreibung und Voraussetzungen.
+)
 
-    parser.add_argument(
-        "--optimizer_name",
-        type=str,
-        default="adamw",
-        choices=["adamw", "adafactor"],
-        help="[NEW MODEL] The optimizer to use: adamw or adafactor. Adafactor requires fairseq to be installed. "
-        "pip install fairseq",
-    )
+parser.add_argument(
+    "--scheduler_name",  # The scheduler to use: linear, polynomial, cosine, plateau.  # Der zu verwendende Scheduler: linear, polynomial, cosine, plateau.
+    type=str,  # Specifies the type as string.  # Gibt den Typ als Zeichenkette an.
+    default="linear",  # Default scheduler is linear.  # Standardscheduler ist linear.
+    choices=["linear", "plateau", "polynomial", "cosine"],  # Possible choices.  # Mögliche Optionen.
+    help="[NEW MODEL] The scheduler to use: linear, polynomial, cosine, plateau.",  # Description of the parameter.  # Beschreibung des Parameters.
+)
 
-    parser.add_argument(
-        "--scheduler_name",
-        type=str,
-        default="linear",
-        choices=["linear", "plateau", "polynomial", "cosine"],
-        help="[NEW MODEL] The scheduler to use: linear, polynomial, cosine, plateau.",
-    )
+parser.add_argument(
+    "--warmup_factor",  # Percentage of training steps for warmup (0<=warmup_factor<=1).  # Prozentsatz der Trainingsschritte für das Aufwärmen (0<=warmup_factor<=1).
+    type=float,  # Specifies the type as float.  # Gibt den Typ als Gleitkommazahl an.
+    default=0.05,  # Default warmup factor is 0.05.  # Standard-Aufwärmfaktor ist 0.05.
+    help="[NEW MODEL] Percentage of the total training steps that we will use for the warmup (0<=warmup_factor<=1)",  # Description of the parameter.  # Beschreibung des Parameters.
+)
 
-    parser.add_argument(
-        "--warmup_factor",
-        type=float,
-        default=0.05,
-        help="[NEW MODEL] Percentage of the total training steps that we will use for the warmup (0<=warmup_factor<=1)",
-    )
 
+
+
+**************** continue
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+    
     parser.add_argument(
         "--cnn_model_name",
         type=str,
