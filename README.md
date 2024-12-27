@@ -307,7 +307,12 @@ to disable this behaviour use the "--save_everything" flag.
 }
 ```
 
-Author: **Iker García-Ferrero**:  
-- [My Webpage](https://ikergarcia1996.github.io/Iker-Garcia-Ferrero/)  
-- [Twitter](https://twitter.com/iker_garciaf)
+
+## Author
+
+**Iker García-Ferrero**
+
+## Repository's author:
+
+[snake-ai-pytorch](https://github.com/ikergarcia1996/Self-Driving-Car-in-Video-Games)
 
