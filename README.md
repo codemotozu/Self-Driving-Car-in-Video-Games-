@@ -314,5 +314,5 @@ to disable this behaviour use the "--save_everything" flag.
 
 ## Repository's author:
 
-[snake-ai-pytorch](https://github.com/ikergarcia1996/Self-Driving-Car-in-Video-Games)
+[Self-Driving-Car-in-Video-Games](https://github.com/ikergarcia1996/Self-Driving-Car-in-Video-Games)
 
